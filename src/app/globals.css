@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-ai-glow: var(--ai-glow);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* Electric Sunrise Defaults */
+  --background: #FAFAF8;
+  --foreground: #1A1A2E;
+  
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --secondary: #F97316;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --ai-glow: #8B5CF6;
+  
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  
+  --radius: 8px;
+}
+
+.dark {
+  --background: #0F0F1A;
+  --foreground: #F1F5F9;
+  
+  --surface: #1A1A2E;
+  --border: #2D2D44;
+  
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base resets & utilities */
+* {
+  border-color: var(--border);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+}
+
+.gradient-ai {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #3B82F6 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+
+.gradient-sunset {
+  background: linear-gradient(135deg, #F97316 0%, #F59E0B 50%, #EAB308 100%);
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
