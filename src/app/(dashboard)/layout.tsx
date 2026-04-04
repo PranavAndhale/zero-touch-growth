@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Calendar, PenTool, Crosshair, Settings, Sparkles, Bell, LayoutGrid } from "lucide-react"
@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [businessName, setBusinessName] = useState("My Business")
+  const [initial, setInitial] = useState("M")
+
+  useEffect(() => {
+    const stored = localStorage.getItem("businessName")
+    if (stored) {
+      setBusinessName(stored)
+      setInitial(stored.charAt(0).toUpperCase())
+    }
+  }, [])
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -24,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="h-16 flex items-center px-6 border-b border-border text-lg font-bold tracking-tight">
            Zero-Touch<span className="text-primary">.os</span>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -37,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )
           })}
         </div>
-        
+
         <div className="p-4 border-t border-border">
           <div className="bg-gradient-to-br from-ai-glow/10 to-primary/10 rounded-xl p-4 border border-ai-glow/20 relative overflow-hidden group hover:border-ai-glow/40 transition-colors cursor-pointer">
              <div className="absolute -inset-2 bg-ai-glow/20 blur-[20px] opacity-0 group-hover:opacity-100 transition duration-500" />
@@ -63,11 +73,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                <Button variant="ghost" size="icon"><LayoutGrid /></Button>
              </div>
              <div className="font-semibold text-lg flex items-center gap-2">
-               <div className="w-6 h-6 rounded bg-secondary flex items-center justify-center text-white text-xs font-bold shadow-sm">S</div>
-               Sharma Bakery
+               <div className="w-6 h-6 rounded bg-secondary flex items-center justify-center text-white text-xs font-bold shadow-sm">{initial}</div>
+               {businessName}
              </div>
            </div>
-           
+
            <div className="flex items-center gap-3">
              <Button variant="outline" size="sm" className="hidden sm:flex gap-2 text-text-secondary border-dashed">
                <Sparkles className="w-4 h-4 text-ai-glow" /> AI Insights Ready
