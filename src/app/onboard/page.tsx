@@ -120,6 +120,8 @@ export default function OnboardingPage() {
       localStorage.setItem("businessId",      data.businessId)
       localStorage.setItem("businessProfile", JSON.stringify(data.profile))
       localStorage.setItem("businessName",    name.trim() || "My Business")
+      // Store raw input so planner can reconstruct BusinessDocument when Firestore lookup fails
+      localStorage.setItem("businessInput",   JSON.stringify(payload))
 
       await new Promise(r => setTimeout(r, 700))
       router.push("/dashboard")

@@ -26,7 +26,7 @@ export const AUDIENCE_LIST = [
 
 export type Audience = typeof AUDIENCE_LIST[number];
 
-export type Tone = "professional" | "casual" | "playful" | "luxurious" | "friendly";
+export type Tone = "professional" | "casual" | "playful" | "luxurious" | "friendly" | "authoritative";
 
 // ─── Request / Input ─────────────────────────────────────────────────────────
 

@@ -91,6 +91,13 @@ export const plannerRequestSchema = z.object({
   platforms: z
     .array(z.enum(["instagram", "facebook", "linkedin", "twitter"]))
     .optional(),
+
+  // Fallback: full business data sent from client when Firestore lookup may fail
+  // (e.g. when businessId is a "local-..." ID from a failed Firestore save)
+  businessData: z.object({
+    input: z.record(z.string(), z.unknown()),
+    profile: z.record(z.string(), z.unknown()),
+  }).optional(),
 });
 
 export type ValidatedPlannerRequest = z.infer<typeof plannerRequestSchema>;

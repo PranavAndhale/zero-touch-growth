@@ -17,17 +17,54 @@ const PERF_DATA = [
 ]
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 
-interface ContentPillar   { name: string; description: string; weeklyPosts: number }
-interface SeasonalOpp     { festival: string; date: string; marketingAngle: string }
-interface PlatformStrategy{ platform: string; focus: string; postFrequency: string }
-interface QuickWin        { action: string; impact: string; timeframe: string }
+// These interfaces match the actual Gemini output shape exactly
+interface ContentPillar {
+  name: string
+  description: string
+  frequency?: string   // "3x/week" — from AI
+  weeklyPosts?: number // legacy field — never actually populated
+}
+interface SeasonalOpp {
+  // AI returns occasion/campaignIdea; fallback returns festival/marketingAngle
+  occasion?: string; festival?: string
+  date: string
+  campaignIdea?: string; marketingAngle?: string
+}
+interface PlatformStrategyEntry { platform: string; reason?: string; postingFrequency?: string }
 interface BusinessProfile {
   businessSummary?: string
   contentPillars?: ContentPillar[]
   seasonalOpportunities?: SeasonalOpp[]
-  platformStrategy?: PlatformStrategy[]
-  quickWins?: QuickWin[]
-  industryAnalysis?: { keyTrends?: string[] }
+  // AI returns object { primary, secondary, optional }, NOT an array
+  platformStrategy?: {
+    primary?: PlatformStrategyEntry
+    secondary?: PlatformStrategyEntry
+    optional?: PlatformStrategyEntry
+  } | PlatformStrategyEntry[]
+  quickWins?: string[]  // AI returns string[], not object[]
+  industryAnalysis?: { keyTrends?: string[]; marketOverview?: string }
+}
+
+// Normalise helpers — handle both AI output and legacy fallback shapes
+function getFestivalName(opp: SeasonalOpp): string {
+  return opp.festival ?? opp.occasion ?? "—"
+}
+function getMarketingAngle(opp: SeasonalOpp): string {
+  return opp.marketingAngle ?? opp.campaignIdea ?? ""
+}
+function getPillarPostCount(p: ContentPillar): number {
+  if (p.weeklyPosts) return p.weeklyPosts
+  const m = (p.frequency ?? "").match(/(\d+)/)
+  return m ? parseInt(m[1]) : 0
+}
+function getPlatformsArray(ps: BusinessProfile["platformStrategy"]): PlatformStrategyEntry[] {
+  if (!ps) return []
+  if (Array.isArray(ps)) return ps
+  return [ps.primary, ps.secondary, ps.optional].filter(Boolean) as PlatformStrategyEntry[]
+}
+function getQuickWin(qw: string | Record<string, unknown>): string {
+  if (typeof qw === "string") return qw
+  return (qw as Record<string, string>).action ?? JSON.stringify(qw)
 }
 
 // ── Color palette — yellow/blue mix ─────────────────────────────────────────
@@ -67,8 +104,8 @@ export default function DashboardPage() {
 
   const pillars  = profile?.contentPillars        ?? []
   const seasonal = profile?.seasonalOpportunities ?? []
-  const platforms= profile?.platformStrategy      ?? []
-  const quickWins= profile?.quickWins             ?? []
+  const platforms= getPlatformsArray(profile?.platformStrategy)
+  const quickWins= (profile?.quickWins             ?? []) as (string | Record<string, unknown>)[]
   const trends   = profile?.industryAnalysis?.keyTrends ?? []
 
   const nextFest     = seasonal[0]
@@ -87,7 +124,7 @@ export default function DashboardPage() {
   const stats = [
     { label: "Content Pillars",   value: pillars.length  || "—", sub: "AI strategy",         valueColor: "#FFE000", iconColor: "#66B3FF",  icon: <Calendar size={16} /> },
     { label: "Platforms Planned", value: platforms.length|| "—", sub: "active channels",      valueColor: "#FFE000", iconColor: "#A78BFA",  icon: <TrendingUp size={16} /> },
-    { label: "Next Festival",     value: nextFest?.festival ?? "—", sub: nextFestDays !== null ? `In ${nextFestDays} days` : "Check planner", valueColor: "#66B3FF", iconColor: "#FB923C", icon: <PartyPopper size={16} /> },
+    { label: "Next Festival",     value: nextFest ? getFestivalName(nextFest) : "—", sub: nextFestDays !== null ? `In ${nextFestDays} days` : "Check planner", valueColor: "#66B3FF", iconColor: "#FB923C", icon: <PartyPopper size={16} /> },
     { label: "Quick Wins",        value: quickWins.length || "—", sub: "actionable this week", valueColor: "#FFE000", iconColor: "#34D399",  icon: <Sparkles size={16} /> },
   ]
 
@@ -193,7 +230,7 @@ export default function DashboardPage() {
             {quickWins[0] && (
               <div className="flex gap-3 p-3 rounded-xl" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.12)" }}>
                 <Sparkles size={14} style={{ color: "#34D399", marginTop: 2, flexShrink: 0 }} />
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.5 }}>{quickWins[0].action}</p>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, lineHeight: 1.5 }}>{getQuickWin(quickWins[0])}</p>
               </div>
             )}
             {trends.length === 0 && quickWins.length === 0 && (
@@ -218,13 +255,14 @@ export default function DashboardPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {pillars.map((pillar, i) => {
               const c = PILLAR_COLORS[i % PILLAR_COLORS.length]
+              const posts = getPillarPostCount(pillar)
               return (
                 <div key={i} style={card} className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 rounded-full" style={{ background: c }} />
                     <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{pillar.name}</span>
                     <span style={{ marginLeft: "auto", color: c, fontSize: 10, fontFamily: "monospace", opacity: 0.8 }}>
-                      {pillar.weeklyPosts}×/wk
+                      {posts > 0 ? `${posts}×/wk` : pillar.frequency ?? ""}
                     </span>
                   </div>
                   <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, lineHeight: 1.55 }}>{pillar.description}</p>
@@ -283,11 +321,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }} className="truncate">{opp.festival}</span>
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }} className="truncate">{getFestivalName(opp)}</span>
                     <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, whiteSpace: "nowrap" }}>{opp.date}</span>
                   </div>
                   <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 2 }} className="line-clamp-1">
-                    {opp.marketingAngle}
+                    {getMarketingAngle(opp)}
                   </p>
                 </div>
               </div>

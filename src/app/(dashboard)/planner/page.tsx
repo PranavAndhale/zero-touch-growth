@@ -10,13 +10,36 @@ import { TextStaggerHover } from "@/components/ui/text-stagger-hover"
 import { useRouter } from "next/navigation"
 
 interface PlannedPost {
-  type?: string; postType?: string; title?: string; keyMessage?: string
-  caption?: string; timing?: string; status?: string; platform?: string
-  festivalTie?: string; callToAction?: string
+  id?: string
+  // type field — AI returns "post"|"carousel"|"story"|"reel"
+  type?: string; postType?: string
+  // title/headline — AI returns suggestedHeadline, legacy uses title/keyMessage
+  suggestedHeadline?: string; title?: string; keyMessage?: string
+  theme?: string
+  // caption — AI returns captionHook, legacy uses caption
+  captionHook?: string; caption?: string
+  // timing — AI returns time (HH:MM), legacy uses timing
+  time?: string; timing?: string
+  // CTA — AI returns cta, legacy uses callToAction
+  cta?: string; callToAction?: string
+  // other
+  category?: string
+  platform?: string | string[]
+  hashtags?: string[]
+  estimatedReach?: string
+  notes?: string
+  festivalTie?: string; festivalName?: string
+  status?: string
 }
 interface DayPlan {
-  date: string; dayName?: string; posts?: PlannedPost[]; items?: PlannedPost[]
-  specialNote?: string; festivals?: string[]
+  date: string
+  dayName?: string
+  isFestival?: boolean
+  festivalName?: string | null
+  posts?: PlannedPost[]
+  items?: PlannedPost[]  // legacy field name
+  specialNote?: string
+  festivals?: string[]
 }
 
 function getMonday(d: Date): Date {
@@ -56,10 +79,37 @@ export default function PlannerPage() {
     if (!businessId) { router.push("/onboard"); return }
     setGenerating(true); setError(null)
     if (regenerate) setDays([])
+
+    // Always send businessData as fallback in case Firestore lookup fails
+    // (happens when businessId is "local-..." from a failed Firestore save)
+    let businessData: Record<string, unknown> | undefined
+    try {
+      const profileRaw = localStorage.getItem("businessProfile")
+      const inputRaw   = localStorage.getItem("businessInput")
+      if (profileRaw) {
+        businessData = {
+          profile: JSON.parse(profileRaw),
+          input: inputRaw ? JSON.parse(inputRaw) : {
+            name: localStorage.getItem("businessName") ?? "My Business",
+            industry: "general",
+            location: "India",
+            products: [],
+            targetAudience: ["General audience"],
+            tone: "professional",
+          },
+        }
+      }
+    } catch { /* ignore parse errors */ }
+
     try {
       const res  = await fetch("/api/planner/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessId, weekStartDate: formatDate(monday), weeklyGoals: "Increase engagement, promote key products, build brand awareness" }),
+        body: JSON.stringify({
+          businessId,
+          weekStartDate: formatDate(monday),
+          weeklyGoals: "Increase engagement, promote key products, build brand awareness",
+          ...(businessData && { businessData }),
+        }),
       })
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || "Failed to generate plan.")
@@ -78,7 +128,21 @@ export default function PlannerPage() {
 
   function getPosts(day: DayPlan)      { return day.posts ?? day.items ?? [] }
   function getPostType(p: PlannedPost) { return (p.postType ?? p.type ?? "POST").toUpperCase() }
-  function getTitle(p: PlannedPost)    { return p.keyMessage ?? p.title ?? "Untitled Post" }
+  // AI returns suggestedHeadline; fallback/legacy uses keyMessage or title
+  function getTitle(p: PlannedPost)    { return p.suggestedHeadline ?? p.keyMessage ?? p.title ?? p.theme ?? "Untitled Post" }
+  // AI returns captionHook; legacy uses caption
+  function getCaption(p: PlannedPost)  { return p.captionHook ?? p.caption ?? "" }
+  // AI returns time (HH:MM 24hr); legacy uses timing
+  function getTiming(p: PlannedPost)   { return p.time ?? p.timing ?? "—" }
+  // AI returns cta; legacy uses callToAction
+  function getCTA(p: PlannedPost)      { return p.cta ?? p.callToAction ?? "" }
+  // Festival tie-in
+  function getFestivalTie(p: PlannedPost) { return p.festivalTie ?? p.festivalName ?? "" }
+  // Platform display
+  function getPlatformDisplay(p: PlannedPost) {
+    if (Array.isArray(p.platform)) return p.platform.join(", ")
+    return p.platform ?? ""
+  }
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 pt-6">
@@ -154,9 +218,9 @@ export default function PlannerPage() {
                   <div className="text-center pb-2 mb-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                     <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 1, textTransform: "uppercase" }}>{dayName}</div>
                     <div style={{ fontSize: 20, fontWeight: 700, color: isToday ? "#FFE000" : "#fff", lineHeight: 1.2, margin: "4px 0" }}>{dateNum}</div>
-                    {day.festivals?.[0] && (
+                    {(day.festivalName || day.festivals?.[0]) && (
                       <div className="truncate max-w-full mx-auto rounded-full px-2 py-0.5 inline-block" style={{ fontSize: 8, fontWeight: 700, background: "rgba(251,146,60,0.12)", color: "#FB923C" }}>
-                        {day.festivals[0]}
+                        {day.festivalName ?? day.festivals?.[0]}
                       </div>
                     )}
                   </div>
@@ -184,7 +248,7 @@ export default function PlannerPage() {
                             {getTitle(post)}
                           </div>
                           <div className="flex items-center justify-between mt-1.5">
-                            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>{post.timing ?? "—"}</span>
+                            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>{getTiming(post)}</span>
                             <div className="w-1.5 h-1.5 rounded-full" style={{
                               background: post.status === "published" ? "#34D399" : post.status === "scheduled" ? "#FFE000" : "rgba(255,255,255,0.2)"
                             }} />
@@ -224,8 +288,8 @@ export default function PlannerPage() {
                     <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>• {selectedPost.status ?? "draft"}</span>
                   </div>
                   <h3 style={{ color: "#fff", fontWeight: 700, fontSize: 15, lineHeight: 1.3 }}>{getTitle(selectedPost)}</h3>
-                  {selectedPost.platform && (
-                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 4, textTransform: "capitalize" }}>{selectedPost.platform}</p>
+                  {getPlatformDisplay(selectedPost) && (
+                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 4, textTransform: "capitalize" }}>{getPlatformDisplay(selectedPost)}</p>
                   )}
                 </div>
                 <button onClick={() => setSelectedPost(null)} style={{ color: "rgba(255,255,255,0.3)", flexShrink: 0, marginLeft: 8 }}>
@@ -234,14 +298,14 @@ export default function PlannerPage() {
               </div>
 
               <div className="flex-1 space-y-4">
-                {selectedPost.caption && (
+                {getCaption(selectedPost) && (
                   <div>
                     <div className="flex items-center gap-1 mb-1" style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }}>
-                      <AlignLeft size={12} /> Caption
+                      <AlignLeft size={12} /> Caption Hook
                     </div>
                     <div className="p-3 rounded-xl text-xs leading-relaxed whitespace-pre-line"
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                      {selectedPost.caption}
+                      {getCaption(selectedPost)}
                     </div>
                     <div className="flex justify-end mt-1">
                       <button style={{ color: "#A78BFA", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
@@ -250,26 +314,39 @@ export default function PlannerPage() {
                     </div>
                   </div>
                 )}
-                {selectedPost.callToAction && (
+                {getCTA(selectedPost) && (
                   <div>
                     <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>CTA</div>
                     <div className="p-2 rounded-xl text-xs font-medium" style={{ background: "rgba(255,223,0,0.06)", border: "1px solid rgba(255,223,0,0.15)", color: "#FFE000" }}>
-                      {selectedPost.callToAction}
+                      {getCTA(selectedPost)}
                     </div>
                   </div>
                 )}
-                {selectedPost.festivalTie && (
+                {getFestivalTie(selectedPost) && (
                   <div>
                     <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Festival Tie-in</div>
                     <div className="p-2 rounded-xl text-xs font-medium" style={{ background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.2)", color: "#FB923C" }}>
-                      {selectedPost.festivalTie}
+                      {getFestivalTie(selectedPost)}
+                    </div>
+                  </div>
+                )}
+                {selectedPost.hashtags && selectedPost.hashtags.length > 0 && (
+                  <div>
+                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Hashtags</div>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedPost.hashtags.map((tag, hi) => (
+                        <span key={hi} className="px-2 py-0.5 rounded-lg text-[9px] font-medium"
+                          style={{ background: "rgba(102,179,255,0.08)", border: "1px solid rgba(102,179,255,0.15)", color: "#66B3FF" }}>
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { icon: <CalendarIcon size={10} />, label: "Type",  val: getPostType(selectedPost) },
-                    { icon: <Clock size={10} />,         label: "Time",  val: selectedPost.timing ?? "—" },
+                    { icon: <Clock size={10} />,         label: "Time",  val: getTiming(selectedPost) },
                   ].map(({ icon, label, val }) => (
                     <div key={label}>
                       <div className="flex items-center gap-1 mb-1" style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>

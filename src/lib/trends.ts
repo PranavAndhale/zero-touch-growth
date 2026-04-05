@@ -2,35 +2,16 @@ import { XMLParser } from "fast-xml-parser";
 import { TrendingTopic } from "./types/calendar";
 import { getCached, setCache, TTL } from "./cache";
 
-const TRENDS_RSS = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=IN";
+// Google Trends daily India RSS — no q= filter (it doesn't work on daily endpoint)
+const TRENDS_RSS_IN = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=IN";
 
-const INDUSTRY_KEYWORDS: Record<string, string> = {
-  bakery: "bakery baking",
-  restaurant: "restaurant food",
-  cafe: "cafe coffee",
-  salon: "beauty salon hair",
-  gym: "fitness gym",
-  yoga_studio: "yoga wellness",
-  clothing: "fashion clothing",
-  jewelry: "gold jewelry",
-  grocery: "grocery market",
-  pharmacy: "medicine health",
-  electronics: "electronics gadgets",
-  florist: "flowers bouquet",
-  travel: "travel tourism",
-  hotel: "hotel stay",
-  real_estate: "property real estate",
-  dentist: "dental health",
-  school: "education learning",
-  event_planning: "event wedding",
-  catering: "catering food",
-  general: "small business india",
-};
-
-async function fetchTrendsRSS(url: string): Promise<TrendingTopic[]> {
+async function fetchTrendsRSS(): Promise<TrendingTopic[]> {
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+    const res = await fetch(TRENDS_RSS_IN, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+        "Accept": "application/rss+xml, application/xml, text/xml",
+      },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return [];
@@ -44,7 +25,7 @@ async function fetchTrendsRSS(url: string): Promise<TrendingTopic[]> {
 
     const itemArray = Array.isArray(items) ? items : [items];
 
-    return itemArray.slice(0, 10).map((item: Record<string, unknown>) => ({
+    return itemArray.slice(0, 15).map((item: Record<string, unknown>) => ({
       title: (item.title as string) || "",
       trafficVolume:
         (item["ht:approx_traffic"] as string) ||
@@ -52,7 +33,7 @@ async function fetchTrendsRSS(url: string): Promise<TrendingTopic[]> {
         "N/A",
       newsUrl: (item["ht:news_item_url"] as string) || (item.link as string) || undefined,
       relatedQueries: [],
-    }));
+    })).filter(t => t.title);
   } catch (err) {
     console.warn("Trends RSS fetch failed:", err);
     return [];
@@ -63,21 +44,19 @@ export async function getTrendingInIndia(): Promise<TrendingTopic[]> {
   const cached = getCached<TrendingTopic[]>("trends_india");
   if (cached) return cached;
 
-  const trends = await fetchTrendsRSS(TRENDS_RSS);
+  const trends = await fetchTrendsRSS();
   if (trends.length > 0) setCache("trends_india", trends, TTL.TRENDS);
   return trends;
 }
 
+// All industries now share the general India trending feed.
+// Industry-specific context is handled by GNews (getIndustryNews).
 export async function getIndustryTrends(industry: string): Promise<TrendingTopic[]> {
   const cacheKey = `trends_industry_${industry}`;
   const cached = getCached<TrendingTopic[]>(cacheKey);
   if (cached) return cached;
 
-  const keyword = INDUSTRY_KEYWORDS[industry] || "small business";
-  const encoded = encodeURIComponent(keyword);
-  const url = `https://trends.google.com/trends/trendingsearches/daily/rss?geo=IN&q=${encoded}`;
-
-  const trends = await fetchTrendsRSS(url);
+  const trends = await fetchTrendsRSS();
   if (trends.length > 0) setCache(cacheKey, trends, TTL.TRENDS);
   return trends;
 }

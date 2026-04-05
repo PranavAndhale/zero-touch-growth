@@ -86,14 +86,14 @@ export async function POST(req: NextRequest) {
       upcomingFestivals as never
     );
 
-    // 8-second cap so Vercel's serverless doesn't timeout ungracefully
+    // 18-second cap — complex prompt needs room; maxDuration is 25s
     const aiResult = await withTimeout(
       callGeminiJSON<BusinessProfile>(prompt, {
         temperature: 0.7,
-        maxTokens: 2048,
+        maxTokens: 3072,
         jsonMode: true,
       }),
-      8000,
+      18000,
       null
     );
 
