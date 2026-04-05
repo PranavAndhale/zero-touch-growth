@@ -33,25 +33,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [])
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0a0a0a", color: "#fff" }}>
+    <div className="min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
       <GlassFilter />
+
+      {/* ── Full-viewport blue WebGL background ───────────────────────── */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
+        <AnimatedGradient
+          config={{
+            preset: "custom",
+            color1: "#020818",
+            color2: "#0A3566",
+            color3: "#66B3FF",
+            rotation: -30,
+            proportion: 40,
+            scale: 0.6,
+            speed: 18,
+            distortion: 3,
+            swirl: 55,
+            swirlIterations: 8,
+            softness: 85,
+            offset: -200,
+            shape: "Checks",
+            shapeSize: 35,
+          }}
+          noise={{ opacity: 12 }}
+          style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 1 }}
+        />
+        {/* Dark overlay for readability */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(2,8,24,0.52)", zIndex: 1 }} />
+      </div>
 
       {/* ── Desktop fluid sidebar ──────────────────────────────────────── */}
       <aside
         className="hidden md:flex flex-col fixed left-0 top-0 h-screen z-40"
         style={{
           width: 72,
-          background: "#0d0d0d",
-          borderRight: "1px solid rgba(255,223,0,0.08)",
-          overflow: "visible",   // allow expanded items to overflow downward
+          background: "rgba(5,10,28,0.75)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderRight: "1px solid rgba(102,179,255,0.12)",
+          overflow: "visible",
         }}
       >
         {/* Logo */}
         <div
           className="flex items-center justify-center h-16 flex-shrink-0"
-          style={{ borderBottom: "1px solid rgba(255,223,0,0.08)" }}
+          style={{ borderBottom: "1px solid rgba(102,179,255,0.1)" }}
         >
-          <Link href="/" style={{ color: "#FFE000", fontFamily: "monospace", fontWeight: 900, fontSize: 17, letterSpacing: -1, textDecoration: "none" }}>
+          <Link href="/" style={{ color: "#66B3FF", fontFamily: "monospace", fontWeight: 900, fontSize: 17, letterSpacing: -1, textDecoration: "none" }}>
             ZT
           </Link>
         </div>
@@ -63,11 +92,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <MenuItem
               icon={
                 <div className="relative w-6 h-6">
-                  {/* Hamburger — visible when collapsed */}
                   <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-100 scale-100 rotate-0 [div[data-expanded=true]_&]:opacity-0 [div[data-expanded=true]_&]:scale-0 [div[data-expanded=true]_&]:rotate-180">
                     <MenuIcon size={22} strokeWidth={1.5} />
                   </div>
-                  {/* X — visible when expanded */}
                   <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-0 scale-0 -rotate-180 [div[data-expanded=true]_&]:opacity-100 [div[data-expanded=true]_&]:scale-100 [div[data-expanded=true]_&]:rotate-0">
                     <X size={22} strokeWidth={1.5} />
                   </div>
@@ -84,11 +111,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   isActive={active}
                   onClick={() => router.push(href)}
                   icon={
-                    <div className="relative flex items-center justify-center group/item" title={name}>
+                    <div className="relative flex items-center justify-center" title={name}>
                       <Icon
                         size={22}
                         strokeWidth={1.5}
-                        style={{ color: active ? color : "rgba(255,255,255,0.5)", transition: "color 150ms" }}
+                        style={{ color: active ? color : "rgba(255,255,255,0.45)", transition: "color 150ms" }}
                       />
                       {active && (
                         <span
@@ -110,10 +137,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Mobile header ──────────────────────────────────────────────── */}
       <div
         className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14"
-        style={{ background: "#0d0d0d", borderBottom: "1px solid rgba(255,223,0,0.08)" }}
+        style={{
+          background: "rgba(5,10,28,0.8)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(102,179,255,0.1)",
+        }}
       >
-        <span style={{ color: "#FFE000", fontFamily: "monospace", fontWeight: 900, fontSize: 16 }}>ZT.os</span>
-        <button onClick={() => setMobileOpen(v => !v)} style={{ color: "#FFE000" }}>
+        <span style={{ color: "#66B3FF", fontFamily: "monospace", fontWeight: 900, fontSize: 16 }}>ZT.os</span>
+        <button onClick={() => setMobileOpen(v => !v)} style={{ color: "#66B3FF" }}>
           {mobileOpen ? <X size={22} /> : <MenuIcon size={22} />}
         </button>
       </div>
@@ -122,12 +153,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {mobileOpen && (
         <div
           className="md:hidden fixed inset-0 z-40"
-          style={{ background: "rgba(0,0,0,0.75)" }}
+          style={{ background: "rgba(0,0,0,0.6)" }}
           onClick={() => setMobileOpen(false)}
         >
           <div
             className="absolute left-0 top-0 h-full w-52 flex flex-col pt-20 pb-6 px-3 gap-1"
-            style={{ background: "#0d0d0d", borderRight: "1px solid rgba(255,223,0,0.1)" }}
+            style={{ background: "rgba(5,10,28,0.9)", backdropFilter: "blur(20px)", borderRight: "1px solid rgba(102,179,255,0.1)" }}
             onClick={e => e.stopPropagation()}
           >
             {NAV_ITEMS.map(({ name, href, icon: Icon, color }) => {
@@ -153,17 +184,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* ── Main content ───────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: 72 }} suppressHydrationWarning>
-
+      <main
+        className="flex-1 flex flex-col min-h-screen"
+        style={{ marginLeft: 72, position: "relative", zIndex: 10 }}
+        suppressHydrationWarning
+      >
         {/* Top header */}
         <header
           className="sticky top-0 z-30 flex items-center justify-between px-6 h-16"
-          style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,223,0,0.06)" }}
+          style={{
+            background: "rgba(5,10,28,0.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(102,179,255,0.1)",
+          }}
         >
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{ background: "rgba(255,223,0,0.12)", color: "#FFE000", border: "1px solid rgba(255,223,0,0.25)" }}
+              style={{ background: "rgba(102,179,255,0.15)", color: "#66B3FF", border: "1px solid rgba(102,179,255,0.3)" }}
             >
               {initial}
             </div>
@@ -173,7 +212,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <Link href="/studio"
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105"
-              style={{ background: "rgba(255,223,0,0.07)", border: "1px solid rgba(255,223,0,0.18)", color: "#FFE000" }}
+              style={{ background: "rgba(102,179,255,0.1)", border: "1px solid rgba(102,179,255,0.25)", color: "#66B3FF" }}
             >
               <Sparkles size={12} /> AI Ready
             </Link>
@@ -183,33 +222,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           </div>
         </header>
-
-        {/* WebGL background — deep blue animation */}
-        <div className="fixed inset-0 -z-10" style={{ marginLeft: 72 }}>
-          <AnimatedGradient
-            config={{
-              preset: "custom",
-              color1: "#020818",
-              color2: "#0A3566",
-              color3: "#66B3FF",
-              rotation: -30,
-              proportion: 40,
-              scale: 0.6,
-              speed: 18,
-              distortion: 3,
-              swirl: 55,
-              swirlIterations: 8,
-              softness: 85,
-              offset: -200,
-              shape: "Checks",
-              shapeSize: 35,
-            }}
-            noise={{ opacity: 12 }}
-            style={{ opacity: 0.75 }}
-          />
-          {/* Overlay to keep content readable */}
-          <div className="absolute inset-0" style={{ background: "rgba(2,8,24,0.55)" }} />
-        </div>
 
         {/* Page content */}
         <div className="flex-1 p-5 md:p-7">

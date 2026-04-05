@@ -30,14 +30,16 @@ interface BusinessProfile {
   industryAnalysis?: { keyTrends?: string[] }
 }
 
-// ── Color palette (non-yellow accents) ──────────────────────────────────────
-const PILLAR_COLORS = ["#FFE000", "#A78BFA", "#34D399", "#FB923C", "#60A5FA", "#F472B6"]
+// ── Color palette ───────────────────────────────────────────────────────────
+const PILLAR_COLORS = ["#66B3FF", "#A78BFA", "#34D399", "#FB923C", "#F472B6", "#FBBF24"]
 
 const card: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(10,20,60,0.55)",
+  border: "1px solid rgba(102,179,255,0.18)",
   borderRadius: 16,
-  backdropFilter: "blur(12px)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  boxShadow: "0 4px 32px rgba(2,8,24,0.4), inset 0 1px 0 rgba(102,179,255,0.1)",
 }
 
 export default function DashboardPage() {
@@ -83,7 +85,7 @@ export default function DashboardPage() {
   const todayIdx = (today.getDay() + 6) % 7
 
   const stats = [
-    { label: "Content Pillars",   value: pillars.length  || "—", sub: "AI strategy",        color: "#FFE000",  icon: <Calendar size={16} /> },
+    { label: "Content Pillars",   value: pillars.length  || "—", sub: "AI strategy",        color: "#66B3FF",  icon: <Calendar size={16} /> },
     { label: "Platforms Planned", value: platforms.length|| "—", sub: "active channels",     color: "#A78BFA",  icon: <TrendingUp size={16} /> },
     { label: "Next Festival",     value: nextFest?.festival ?? "—", sub: nextFestDays !== null ? `In ${nextFestDays} days` : "Check planner", color: "#FB923C", icon: <PartyPopper size={16} /> },
     { label: "Quick Wins",        value: quickWins.length || "—", sub: "actionable this week",color: "#34D399",  icon: <Sparkles size={16} /> },
@@ -109,7 +111,7 @@ export default function DashboardPage() {
         <Link href="/studio">
           <GlassButton
             className="gap-2 text-sm"
-            style={{ color: "#FFE000", border: "1px solid rgba(255,223,0,0.25)" }}
+            style={{ color: "#66B3FF", border: "1px solid rgba(102,179,255,0.3)" }}
           >
             <Sparkles size={14} /> Generate Creative
           </GlassButton>
@@ -136,7 +138,7 @@ export default function DashboardPage() {
         <div style={card} className="lg:col-span-8 p-5">
           <div className="flex items-center justify-between mb-4">
             <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>This Week</span>
-            <Link href="/planner" className="flex items-center gap-1 text-xs font-medium" style={{ color: "#FFE000" }}>
+            <Link href="/planner" className="flex items-center gap-1 text-xs font-medium" style={{ color: "#66B3FF" }}>
               View Planner <ChevronRight size={13} />
             </Link>
           </div>
@@ -151,16 +153,16 @@ export default function DashboardPage() {
               return (
                 <div key={day} className="flex-1 flex flex-col items-center p-2 rounded-xl"
                   style={{
-                    background: isToday ? "rgba(255,223,0,0.07)" : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${isToday ? "rgba(255,223,0,0.25)" : "rgba(255,255,255,0.06)"}`,
+                    background: isToday ? "rgba(102,179,255,0.1)" : "rgba(10,20,60,0.4)",
+                    border: `1px solid ${isToday ? "rgba(102,179,255,0.3)" : "rgba(102,179,255,0.1)"}`,
                   }}>
                   <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>{day}</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: isToday ? "#FFE000" : "#fff", margin: "6px 0 8px" }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: isToday ? "#66B3FF" : "#fff", margin: "6px 0 8px" }}>
                     {weekDates[i]}
                   </span>
                   {pillars[i % Math.max(pillars.length, 1)] && pillars.length > 0 && (
-                    <div className="w-full rounded flex items-center justify-center" style={{ height: 24, background: "rgba(255,223,0,0.08)", border: "1px solid rgba(255,223,0,0.15)" }}>
-                      <CheckCircle2 size={11} style={{ color: "#FFE000" }} />
+                    <div className="w-full rounded flex items-center justify-center" style={{ height: 24, background: "rgba(102,179,255,0.1)", border: "1px solid rgba(102,179,255,0.2)" }}>
+                      <CheckCircle2 size={11} style={{ color: "#66B3FF" }} />
                     </div>
                   )}
                   {hasFest && (
@@ -200,7 +202,7 @@ export default function DashboardPage() {
           </div>
           <GlassButton
             className="w-full mt-4 text-xs"
-            style={{ color: "#A78BFA", border: "1px solid rgba(167,139,250,0.2)" }}
+            style={{ color: "#66B3FF", border: "1px solid rgba(102,179,255,0.2)" }}
           >
             Apply Recommendations
           </GlassButton>
@@ -246,18 +248,18 @@ export default function DashboardPage() {
               <AreaChart data={PERF_DATA} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#FFE000" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#FFE000" stopOpacity={0}   />
+                    <stop offset="5%"  stopColor="#66B3FF" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#66B3FF" stopOpacity={0}  />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.3)" }} />
                 <YAxis fontSize={10} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.3)" }} />
                 <Tooltip
                   contentStyle={{ background: "#1a1a1a", border: "1px solid rgba(255,223,0,0.2)", borderRadius: 8 }}
-                  labelStyle={{ color: "#FFE000" }}
+                  labelStyle={{ color: "#66B3FF" }}
                   itemStyle={{ color: "#fff" }}
                 />
-                <Area type="monotone" dataKey="v" stroke="#FFE000" strokeWidth={2} fill="url(#g1)" />
+                <Area type="monotone" dataKey="v" stroke="#66B3FF" strokeWidth={2} fill="url(#g1)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
