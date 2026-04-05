@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GlassEffect, GlassButton, GlassFilter } from "@/components/ui/liquid-glass"
 import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu"
-import { YellowSpinner } from "@/components/ui/spinner-1"
+import { Spinner } from "@/components/ui/spinner-1"
 
 // Background images — same Pinterest set as landing page
 const BG_IMAGES = [

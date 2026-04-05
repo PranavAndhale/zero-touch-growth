@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react"
 import {
   Sparkles, GripHorizontal, ChevronLeft, ChevronRight, Plus,
-  Calendar as CalendarIcon, Clock, AlignLeft, Loader2, AlertCircle
+  Calendar as CalendarIcon, Clock, AlignLeft, AlertCircle
 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner-1"
 import { GlassButton } from "@/components/ui/liquid-glass"
 import { TextStaggerHover } from "@/components/ui/text-stagger-hover"
 import { useRouter } from "next/navigation"
@@ -196,7 +197,7 @@ export default function PlannerPage() {
 
       {(loading || generating) ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <Loader2 size={32} style={{ color: "#A78BFA" }} className="animate-spin" />
+          <Spinner size={48} />
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500 }}>
             {generating ? "Generating your AI content plan…" : "Loading…"}
           </p>
@@ -392,7 +393,7 @@ export default function PlannerPage() {
           onClick={() => generatePlan(weekStart, true)}
           disabled={generating}
         >
-          {generating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+          {generating ? <Spinner size={12} /> : <Sparkles size={12} />}
           Regenerate
         </GlassButton>
       </div>

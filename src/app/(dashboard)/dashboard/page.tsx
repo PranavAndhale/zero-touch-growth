@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react"
 import {
   Sparkles, Calendar, TrendingUp, PartyPopper, CheckCircle2,
-  ChevronRight, BarChart2, Loader2
+  ChevronRight, BarChart2
 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner-1"
 import { GlassEffect, GlassButton } from "@/components/ui/liquid-glass"
 import { TextStaggerHover } from "@/components/ui/text-stagger-hover"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts"
@@ -97,7 +98,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={28} style={{ color: "#FFE000" }} className="animate-spin" />
+        <Spinner size={48} />
       </div>
     )
   }

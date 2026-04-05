@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Sparkles, Image as ImageIcon, LayoutTemplate, Type, Send, Download, Maximize2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner-1"
 import { GlowButton } from "@/components/shared/GlowButton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -103,7 +104,7 @@ export default function StudioPage() {
                  
                  {/* Loading skeleton mock */}
                  <div className="aspect-square bg-surface border border-border border-dashed rounded-xl flex flex-col items-center justify-center text-text-muted gap-2">
-                    <div className="w-5 h-5 border-2 border-t-ai-glow border-border rounded-full animate-spin" />
+                    <Spinner size={20} />
                     <span className="text-xs font-medium">Generating...</span>
                  </div>
               </div>
