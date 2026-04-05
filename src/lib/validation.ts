@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { INDUSTRY_LIST, AUDIENCE_LIST } from "./types/business";
 
 // ─── Business Analysis Request ────────────────────────────────────────────────
+
+const VALID_TONES = ["professional", "casual", "playful", "luxurious", "friendly", "authoritative"] as const;
 
 export const analyzeRequestSchema = z.object({
   name: z
@@ -10,39 +11,64 @@ export const analyzeRequestSchema = z.object({
     .max(100, "Business name too long")
     .transform((v) => v.trim()),
 
+  // Accept valid URL, empty string, or absent — never reject
   websiteUrl: z
-    .string()
-    .url("Must be a valid URL (include https://)")
+    .union([z.string().url(), z.string().max(0), z.undefined()])
     .optional()
-    .or(z.literal("")),
+    .transform((v) => (!v || v.trim() === "" ? undefined : v.trim())),
 
-  industry: z
-    .string()
-    .min(1, "Industry is required"),
+  industry: z.string().min(1, "Industry is required"),
 
+  // Accept plain string or array of strings
   targetAudience: z
-    .array(z.string())
-    .min(1, "Select at least one target audience")
-    .max(5, "Select up to 5 audiences"),
+    .union([
+      z.string().transform((v) => (v.trim() ? [v.trim()] : ["General audience"])),
+      z.array(z.string()).min(1),
+      z.undefined(),
+    ])
+    .optional()
+    .transform((v) => v ?? ["General audience"]),
 
   location: z
     .string()
-    .min(2, "Location is required")
-    .transform((v) => v.trim()),
+    .optional()
+    .transform((v) => v?.trim() || "India"),
 
+  // Accept plain string (split by comma) or array
   products: z
-    .array(z.string().min(1))
-    .min(1, "Add at least one product or service")
-    .max(20, "Maximum 20 products"),
+    .union([
+      z.string().transform((v) =>
+        v.trim() ? v.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean) : []
+      ),
+      z.array(z.string()),
+      z.undefined(),
+    ])
+    .optional()
+    .transform((v) => (!v || v.length === 0 ? [] : v)),
 
-  tone: z.enum(["professional", "casual", "playful", "luxurious", "friendly"]),
+  // Any casing — normalise and fallback to "professional" if invalid
+  tone: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const lower = (v ?? "professional").toLowerCase();
+      return (VALID_TONES as readonly string[]).includes(lower)
+        ? (lower as typeof VALID_TONES[number])
+        : "professional";
+    }),
 
+  // Brand colors — strip any invalid entries instead of rejecting
   brandColors: z
-    .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be valid hex color"))
-    .max(3)
-    .optional(),
+    .array(z.string())
+    .optional()
+    .transform((v) =>
+      (v ?? []).filter((c) => /^#[0-9A-Fa-f]{6}$/.test(c))
+    ),
 
-  logoUrl: z.string().url().optional().or(z.literal("")),
+  logoUrl: z
+    .union([z.string().url(), z.string().max(0), z.undefined()])
+    .optional()
+    .transform((v) => (!v || v.trim() === "" ? undefined : v.trim())),
 });
 
 export type ValidatedAnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
@@ -79,7 +105,9 @@ export function validateAndParse<T>(
   if (result.success) {
     return { success: true, data: result.data };
   }
-  const zodError = result.error as unknown as { issues: Array<{ path: (string | number)[]; message: string }> };
-  const errors = (zodError.issues || []).map((e) => `${e.path.join(".")}: ${e.message}`);
+  // Zod v4 compatible — .issues is on result.error directly
+  const errors = (result.error.issues ?? []).map(
+    (e) => `${(e.path ?? []).join(".")}: ${e.message}`
+  );
   return { success: false, errors };
 }
