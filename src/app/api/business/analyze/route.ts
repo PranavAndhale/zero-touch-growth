@@ -32,7 +32,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const formData = validation.data;
+  // Cast tone to the narrower Tone type — safe because the Zod transform
+  // already validated and normalised the value; TypeScript just can't infer it.
+  const formData = validation.data as typeof validation.data & { tone: Tone };
 
   // ── 2. All external calls wrapped in try/catch + timeout ────────────────────
   // Each call has its own timeout so one slow service can't block everything.
@@ -99,7 +101,7 @@ export async function POST(req: NextRequest) {
     profile = aiResult;
   } catch (err) {
     console.warn("AI analysis unavailable, using fallback:", (err as Error).message);
-    profile = getFallbackProfile(formData.industry, { ...formData, tone: formData.tone as Tone });
+    profile = getFallbackProfile(formData.industry, formData);
     usedFallback = true;
   }
 
