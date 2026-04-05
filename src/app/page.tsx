@@ -8,7 +8,7 @@ const projectsData = [
     category: "AI ANALYSIS",
     label: "GEMINI 2.0 FLASH",
     year: "LIVE",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/736x/9f/10/23/9f1023c3785097536e164d3ef7ac9fb6.jpg",
   },
   {
     id: 2,
@@ -17,7 +17,7 @@ const projectsData = [
     category: "AUTOMATION",
     label: "GEMINI 2.0 FLASH",
     year: "LIVE",
-    image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/736x/bf/f0/4d/bff04d662db206377de801ec0bc42804.jpg",
   },
   {
     id: 3,
@@ -26,7 +26,7 @@ const projectsData = [
     category: "MARKETING",
     label: "CALENDARIFIC API",
     year: "LIVE",
-    image: "https://images.unsplash.com/photo-1574192279858-fd8e7e5cab4f?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/736x/90/cf/ec/90cfec4c5230978dba450909c676fd42.jpg",
   },
   {
     id: 4,
@@ -35,7 +35,7 @@ const projectsData = [
     category: "AI DESIGN",
     label: "STABLE DIFFUSION",
     year: "BETA",
-    image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/736x/8a/9d/06/8a9d06bccabc53834aa311fb3beb75f6.jpg",
   },
   {
     id: 5,
@@ -44,7 +44,7 @@ const projectsData = [
     category: "GROWTH",
     label: "GOOGLE ADS API",
     year: "BETA",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/1200x/99/0d/93/990d93d257f1f31ac12fbd161b29da8b.jpg",
   },
   {
     id: 6,
@@ -53,16 +53,7 @@ const projectsData = [
     category: "INSIGHTS",
     label: "GNEWS + RSS",
     year: "LIVE",
-    image: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=1200&auto=format&fit=crop&q=80",
-  },
-  {
-    id: 7,
-    artist: "ZERO-TOUCH OS",
-    album: "INSTANT ONBOARDING",
-    category: "SETUP",
-    label: "CHEERIO SCRAPER",
-    year: "LIVE",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80",
+    image: "https://i.pinimg.com/1200x/1c/17/6b/1c176b16985212a93a950d61793b7e18.jpg",
   },
 ]
 
