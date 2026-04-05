@@ -5,13 +5,21 @@ import { getUpcomingFestivals } from "@/lib/calendarific";
 import { getIndustryTrends } from "@/lib/trends";
 import { getIndustryNews } from "@/lib/gnews";
 import { buildWeeklyPlannerPrompt } from "@/lib/prompts/weekly-planner";
-import { callGeminiJSON, GeminiRateLimitError, isGeminiAvailable } from "@/lib/gemini";
+import { callGeminiJSON, isGeminiAvailable } from "@/lib/gemini";
 import { BusinessDocument, BusinessProfile, AnalyzeRequest } from "@/lib/types/business";
 import { WeeklyPlan, Festival, PlannerResponse } from "@/lib/types/calendar";
 import { addDays, format, parseISO } from "date-fns";
 import { getFallbackWeeklyPlan } from "@/lib/fallback";
 
 export const maxDuration = 25;
+
+/** Race a promise against a timeout — returns null on timeout */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -25,23 +33,24 @@ export async function POST(req: NextRequest) {
 
   const validation = validateAndParse(plannerRequestSchema, body);
   if (!validation.success) {
-    return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    return NextResponse.json(
+      { error: "Validation failed", details: validation.errors },
+      { status: 400 }
+    );
   }
 
   const { businessId, weekStartDate, weeklyGoals, businessData } = validation.data;
 
-  // ── Load business profile ───────────────────────────────────────────────────
-  // Try Firestore first; fall back to client-supplied businessData
+  // ── 1. Load business profile ────────────────────────────────────────────────
   let business: BusinessDocument | null = null;
 
   try {
-    const doc = await getBusinessFromFirestore(businessId);
+    const doc = await withTimeout(getBusinessFromFirestore(businessId), 3000);
     if (doc) business = doc as unknown as BusinessDocument;
   } catch {
-    // Firestore unavailable — continue to fallback
+    // Firestore unavailable — fall through to client-supplied data
   }
 
-  // Use client-supplied businessData if Firestore returned nothing
   if (!business && businessData) {
     business = {
       id: businessId,
@@ -62,29 +71,31 @@ export async function POST(req: NextRequest) {
   }
 
   const industry = business.input?.industry ?? "general";
+  const businessName = business.input?.name ?? "My Business";
 
-  // ── Gather context data (all in parallel, all non-fatal) ───────────────────
+  // ── 2. Gather context data — all capped at 3s each ─────────────────────────
   const [allFestivals, trends, news] = await Promise.all([
-    getUpcomingFestivals("IN", 90).catch(() => []),
-    getIndustryTrends(industry).catch(() => []),
-    getIndustryNews(industry).catch(() => []),
+    withTimeout(getUpcomingFestivals("IN", 90), 3000).catch(() => null),
+    withTimeout(getIndustryTrends(industry), 3000).catch(() => null),
+    withTimeout(getIndustryNews(industry), 3000).catch(() => null),
   ]);
 
+  const festivals = (allFestivals ?? []) as Festival[];
   const weekEnd = format(addDays(parseISO(weekStartDate), 6), "yyyy-MM-dd");
 
-  const weekFestivals = (allFestivals as Festival[]).filter(
+  const weekFestivals = festivals.filter(
     (f) => f.date >= weekStartDate && f.date <= weekEnd
   );
-  const nearbyFestivals = (allFestivals as Festival[]).filter(
+  const nearbyFestivals = festivals.filter(
     (f) => f.daysAway >= 0 && f.daysAway <= 14 && f.marketingRelevance !== "low"
   );
 
-  // ── Generate plan ───────────────────────────────────────────────────────────
+  // ── 3. Generate plan — Gemini capped at 15s, then fallback ─────────────────
   let plan: WeeklyPlan;
   let usedFallback = false;
 
   if (!isGeminiAvailable()) {
-    plan = getFallbackWeeklyPlan(weekStartDate, business.input.name);
+    plan = getFallbackWeeklyPlan(weekStartDate, businessName);
     usedFallback = true;
   } else {
     try {
@@ -93,56 +104,64 @@ export async function POST(req: NextRequest) {
         weekStartDate,
         weekFestivals,
         nearbyFestivals,
-        trends,
-        news,
+        trends ?? [],
+        news ?? [],
         weeklyGoals
       );
 
-      plan = await callGeminiJSON<WeeklyPlan>(prompt, {
-        temperature: 0.8,
-        maxTokens: 4096,
-        jsonMode: true,
-      });
-      plan = postProcessPlan(plan, weekStartDate);
-    } catch (err) {
-      if (err instanceof GeminiRateLimitError) {
-        plan = getFallbackWeeklyPlan(weekStartDate, business.input.name);
+      const aiResult = await withTimeout(
+        callGeminiJSON<WeeklyPlan>(prompt, {
+          temperature: 0.8,
+          maxTokens: 4096,
+          jsonMode: true,
+        }),
+        15000
+      );
+
+      if (!aiResult) {
+        console.warn("Gemini planner timed out — using fallback");
+        plan = getFallbackWeeklyPlan(weekStartDate, businessName);
         usedFallback = true;
       } else {
-        console.error("Planner generation error:", err);
-        // Return fallback instead of error — always give the client something useful
-        plan = getFallbackWeeklyPlan(weekStartDate, business.input.name);
-        usedFallback = true;
+        plan = postProcessPlan(aiResult, weekStartDate);
       }
+    } catch (err) {
+      console.error("Planner generation error:", err);
+      plan = getFallbackWeeklyPlan(weekStartDate, businessName);
+      usedFallback = true;
     }
   }
 
-  // ── Save to Firestore (non-fatal) ───────────────────────────────────────────
+  // ── 4. Save to Firestore (non-fatal, max 2s) ────────────────────────────────
   let planId = "local-" + Date.now();
   try {
-    planId = await savePlanToFirestore({
-      businessId,
-      weekStartDate,
-      weekEndDate: weekEnd,
-      plan,
-      userGoals: weeklyGoals || null,
-      regenerationCount: 0,
-      status: "draft",
-      contextUsed: {
-        festivalsInWeek: weekFestivals.map((f: Festival) => f.name),
-        trendsUsed: trends.slice(0, 5).map((t) => t.title),
-        newsUsed: news.slice(0, 3).map((n) => n.title),
-      },
-    });
-  } catch (err) {
-    console.warn("Firestore plan save failed (non-fatal):", err);
+    const saved = await withTimeout(
+      savePlanToFirestore({
+        businessId,
+        weekStartDate,
+        weekEndDate: weekEnd,
+        plan,
+        userGoals: weeklyGoals || null,
+        regenerationCount: 0,
+        status: "draft",
+        contextUsed: {
+          festivalsInWeek: weekFestivals.map((f: Festival) => f.name),
+          trendsUsed: (trends ?? []).slice(0, 5).map((t) => t.title),
+          newsUsed: (news ?? []).slice(0, 3).map((n) => n.title),
+        },
+      }),
+      2000
+    );
+    if (saved) planId = saved;
+  } catch {
+    // Non-fatal
   }
 
   const response: PlannerResponse & { fallback?: boolean } = {
     success: true,
     planId,
     plan,
-    contextUsed: { festivals: weekFestivals, trends, news },
+    contextUsed: { festivals: weekFestivals, trends: trends ?? [], news: news ?? [] },
     generationTime: Date.now() - startTime,
     ...(usedFallback && { fallback: true }),
   };
@@ -164,13 +183,12 @@ function postProcessPlan(plan: WeeklyPlan, weekStartDate: string): WeeklyPlan {
     }
   }
 
-  // Ensure exactly 7 days, filling gaps
+  // Ensure exactly 7 days
   if (allDays.length < 7) {
-    const DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     for (let i = allDays.length; i < 7; i++) {
-      const date = format(addDays(parseISO(weekStartDate), i), "yyyy-MM-dd");
       allDays.push({
-        date,
+        date: format(addDays(parseISO(weekStartDate), i), "yyyy-MM-dd"),
         dayName: DAY_NAMES[i],
         isFestival: false,
         festivalName: null,
