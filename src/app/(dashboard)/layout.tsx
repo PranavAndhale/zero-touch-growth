@@ -184,9 +184,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* WebGL background */}
+        {/* WebGL background — deep blue animation */}
         <div className="fixed inset-0 -z-10" style={{ marginLeft: 72 }}>
-          <AnimatedGradient config={{ preset: "Vortex", speed: 8 }} noise={{ opacity: 15 }} style={{ opacity: 0.35 }} />
+          <AnimatedGradient
+            config={{
+              preset: "custom",
+              color1: "#020818",
+              color2: "#0A3566",
+              color3: "#66B3FF",
+              rotation: -30,
+              proportion: 40,
+              scale: 0.6,
+              speed: 18,
+              distortion: 3,
+              swirl: 55,
+              swirlIterations: 8,
+              softness: 85,
+              offset: -200,
+              shape: "Checks",
+              shapeSize: 35,
+            }}
+            noise={{ opacity: 12 }}
+            style={{ opacity: 0.75 }}
+          />
+          {/* Overlay to keep content readable */}
+          <div className="absolute inset-0" style={{ background: "rgba(2,8,24,0.55)" }} />
         </div>
 
         {/* Page content */}
