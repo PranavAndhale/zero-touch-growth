@@ -30,7 +30,9 @@ export function Menu({ trigger, children, align = "left", showChevron = true }: 
 
       {isOpen && (
         <div
-          className={`absolute ${align === "right" ? "right-0" : "left-0"} mt-2 w-56 rounded-md bg-black/80 border border-yellow-400/20 backdrop-blur-md shadow-lg focus:outline-none z-50`}
+          className={`absolute ${
+            align === "right" ? "right-0" : "left-0"
+          } mt-2 w-56 rounded-md bg-black/80 border border-yellow-400/20 backdrop-blur-md shadow-lg focus:outline-none z-50`}
           role="menu"
           aria-orientation="vertical"
         >
@@ -62,7 +64,7 @@ export function MenuItem({ children, onClick, disabled = false, icon, isActive =
       onClick={onClick}
       disabled={disabled}
     >
-      <span className="flex items-center justify-center h-full mt-[5%]">
+      <span className="flex items-center justify-center h-full">
         {icon && (
           <span className="h-6 w-6 transition-all duration-200 group-hover:[&_svg]:stroke-[2.5]">
             {icon}
@@ -81,7 +83,7 @@ export function MenuContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative w-[64px]" data-expanded={isExpanded}>
       <div className="relative">
-        {/* First item — toggle button */}
+        {/* First item — toggle button, always visible */}
         <div
           className="relative w-16 h-16 bg-black border border-yellow-400/20 cursor-pointer rounded-full group will-change-transform z-50 flex items-center justify-center"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -89,19 +91,23 @@ export function MenuContainer({ children }: { children: React.ReactNode }) {
           {childrenArray[0]}
         </div>
 
-        {/* Rest of items */}
+        {/* Remaining items — animate in/out */}
         {childrenArray.slice(1).map((child, index) => (
           <div
             key={index}
             className="absolute top-0 left-0 w-16 h-16 bg-black border border-yellow-400/20 will-change-transform rounded-full flex items-center justify-center"
             style={{
-              transform: `translateY(${isExpanded ? (index + 1) * 68 : 0}px)`,
+              transform: `translateY(${isExpanded ? (index + 1) * 48 : 0}px)`,
               opacity: isExpanded ? 1 : 0,
               zIndex: 40 - index,
-              clipPath: index === childrenArray.length - 2
-                ? "circle(50% at 50% 50%)"
-                : "circle(50% at 50% 55%)",
-              transition: `transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity ${isExpanded ? "300ms" : "350ms"}`,
+              clipPath:
+                index === childrenArray.length - 2
+                  ? "circle(50% at 50% 50%)"
+                  : "circle(50% at 50% 55%)",
+              transition: `transform ${isExpanded ? "300ms" : "300ms"} cubic-bezier(0.4, 0, 0.2, 1),
+                           opacity ${isExpanded ? "300ms" : "350ms"}`,
+              backfaceVisibility: "hidden",
+              WebkitFontSmoothing: "antialiased",
             }}
           >
             {child}
