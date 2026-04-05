@@ -111,9 +111,14 @@ export default function PlannerPage() {
           ...(businessData && { businessData }),
         }),
       })
-      const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || "Failed to generate plan.")
-      setDays(data.plan?.days ?? [])
+      let data: Record<string, unknown>
+      const raw = await res.text()
+      try { data = JSON.parse(raw) } catch {
+        throw new Error("Server returned an unexpected response. Please try again.")
+      }
+      if (!res.ok || !data.success) throw new Error((data.error as string) || "Failed to generate plan.")
+      const plan = data.plan as { days?: DayPlan[] } | undefined
+      setDays(plan?.days ?? [])
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
     } finally { setGenerating(false); setLoading(false) }
