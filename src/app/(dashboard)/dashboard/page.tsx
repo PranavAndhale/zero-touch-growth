@@ -30,8 +30,8 @@ interface BusinessProfile {
   industryAnalysis?: { keyTrends?: string[] }
 }
 
-// ── Color palette ───────────────────────────────────────────────────────────
-const PILLAR_COLORS = ["#66B3FF", "#A78BFA", "#34D399", "#FB923C", "#F472B6", "#FBBF24"]
+// ── Color palette — yellow/blue mix ─────────────────────────────────────────
+const PILLAR_COLORS = ["#FFE000", "#66B3FF", "#FFE000", "#66B3FF", "#FFE000", "#66B3FF"]
 
 const card: React.CSSProperties = {
   background: "rgba(10,20,60,0.55)",
@@ -85,10 +85,10 @@ export default function DashboardPage() {
   const todayIdx = (today.getDay() + 6) % 7
 
   const stats = [
-    { label: "Content Pillars",   value: pillars.length  || "—", sub: "AI strategy",        color: "#66B3FF",  icon: <Calendar size={16} /> },
-    { label: "Platforms Planned", value: platforms.length|| "—", sub: "active channels",     color: "#A78BFA",  icon: <TrendingUp size={16} /> },
-    { label: "Next Festival",     value: nextFest?.festival ?? "—", sub: nextFestDays !== null ? `In ${nextFestDays} days` : "Check planner", color: "#FB923C", icon: <PartyPopper size={16} /> },
-    { label: "Quick Wins",        value: quickWins.length || "—", sub: "actionable this week",color: "#34D399",  icon: <Sparkles size={16} /> },
+    { label: "Content Pillars",   value: pillars.length  || "—", sub: "AI strategy",         valueColor: "#FFE000", iconColor: "#66B3FF",  icon: <Calendar size={16} /> },
+    { label: "Platforms Planned", value: platforms.length|| "—", sub: "active channels",      valueColor: "#FFE000", iconColor: "#A78BFA",  icon: <TrendingUp size={16} /> },
+    { label: "Next Festival",     value: nextFest?.festival ?? "—", sub: nextFestDays !== null ? `In ${nextFestDays} days` : "Check planner", valueColor: "#66B3FF", iconColor: "#FB923C", icon: <PartyPopper size={16} /> },
+    { label: "Quick Wins",        value: quickWins.length || "—", sub: "actionable this week", valueColor: "#FFE000", iconColor: "#34D399",  icon: <Sparkles size={16} /> },
   ]
 
   return (
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             as="h1"
             staggerMs={18}
             className="text-2xl font-bold tracking-tight"
-            style={{ color: "#fff", fontFamily: "monospace" } as React.CSSProperties}
+            style={{ color: "#FFE000", fontFamily: "monospace" } as React.CSSProperties}
           />
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 4 }}>
             Here&apos;s how your business is growing this week.
@@ -120,13 +120,13 @@ export default function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, sub, color, icon }) => (
+        {stats.map(({ label, value, sub, valueColor, iconColor, icon }) => (
           <div key={label} style={card} className="p-4">
             <div className="flex items-center justify-between mb-3">
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
-              <span style={{ color, opacity: 0.8 }}>{icon}</span>
+              <span style={{ color: iconColor, opacity: 0.9 }}>{icon}</span>
             </div>
-            <div style={{ color, fontSize: 28, fontWeight: 700, fontFamily: "monospace", lineHeight: 1 }}>{value}</div>
+            <div style={{ color: valueColor, fontSize: 28, fontWeight: 700, fontFamily: "monospace", lineHeight: 1 }}>{value}</div>
             <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 6 }}>{sub}</div>
           </div>
         ))}
@@ -137,7 +137,7 @@ export default function DashboardPage() {
         {/* Calendar */}
         <div style={card} className="lg:col-span-8 p-5">
           <div className="flex items-center justify-between mb-4">
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>This Week</span>
+            <span style={{ color: "#66B3FF", fontWeight: 600, fontSize: 14 }}>This Week</span>
             <Link href="/planner" className="flex items-center gap-1 text-xs font-medium" style={{ color: "#66B3FF" }}>
               View Planner <ChevronRight size={13} />
             </Link>
@@ -179,10 +179,10 @@ export default function DashboardPage() {
         {/* AI Insights */}
         <div className="lg:col-span-4" style={{ ...card, padding: 20 }}>
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles size={14} style={{ color: "#A78BFA" }} />
-            <span style={{ color: "#A78BFA", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>AI Insights</span>
+            <Sparkles size={14} style={{ color: "#FFE000" }} />
+            <span style={{ color: "#FFE000", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>AI Insights</span>
           </div>
-          <h3 style={{ color: "#fff", fontWeight: 600, fontSize: 15, marginBottom: 14 }}>Growth Signals</h3>
+          <h3 style={{ color: "#66B3FF", fontWeight: 600, fontSize: 15, marginBottom: 14 }}>Growth Signals</h3>
           <div className="space-y-3">
             {trends.slice(0, 2).map((trend, i) => (
               <div key={i} className="flex gap-3 p-3 rounded-xl" style={{ background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.12)" }}>
@@ -212,7 +212,7 @@ export default function DashboardPage() {
       {/* Content Pillars */}
       {pillars.length > 0 && (
         <div>
-          <h2 style={{ color: "#fff", fontWeight: 600, fontSize: 14, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>
+          <h2 style={{ color: "#FFE000", fontWeight: 600, fontSize: 14, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>
             Content Pillars
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 rounded-full" style={{ background: c }} />
                     <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>{pillar.name}</span>
-                    <span style={{ marginLeft: "auto", color: c, fontSize: 10, fontFamily: "monospace" }}>
+                    <span style={{ marginLeft: "auto", color: c, fontSize: 10, fontFamily: "monospace", opacity: 0.8 }}>
                       {pillar.weeklyPosts}×/wk
                     </span>
                   </div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
         {/* Chart */}
         <div style={card} className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>Engagement Overview</span>
+            <span style={{ color: "#66B3FF", fontWeight: 600, fontSize: 14 }}>Engagement Overview</span>
             <BarChart2 size={16} style={{ color: "rgba(255,255,255,0.3)" }} />
           </div>
           <div style={{ height: 220 }}>
@@ -268,8 +268,8 @@ export default function DashboardPage() {
         {/* Seasonal */}
         <div style={card} className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>Upcoming Opportunities</span>
-            <Link href="/planner" className="flex items-center gap-1 text-xs" style={{ color: "#FB923C" }}>
+            <span style={{ color: "#FFE000", fontWeight: 600, fontSize: 14 }}>Upcoming Opportunities</span>
+            <Link href="/planner" className="flex items-center gap-1 text-xs" style={{ color: "#FFE000" }}>
               Plan Now <ChevronRight size={13} />
             </Link>
           </div>
