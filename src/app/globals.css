@@ -91,6 +91,11 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* ── Global spinner ─────────────────────────────────────────────────────── */
+@keyframes mp-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Music Portfolio Component ───────────────────────────────────────────── */
 
 :root {

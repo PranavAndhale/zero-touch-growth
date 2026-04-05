@@ -88,7 +88,7 @@ export default function PlannerPage() {
         body: JSON.stringify({
           businessId,
           weekStartDate: formatDate(monday),
-          weeklyGoals: ["Increase engagement", "Promote key products", "Build brand awareness"],
+          weeklyGoals: "Increase engagement, promote key products, build brand awareness",
         }),
       })
 
