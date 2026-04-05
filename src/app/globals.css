@@ -208,22 +208,30 @@ body {
 .mp-label    { font-size: 0.63rem; }
 .mp-year     { font-size: 0.63rem; text-align: right; }
 
-/* Background image */
+/* Background image — full viewport cover */
 .mp-background-image {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 380px;
-  height: 380px;
+  transform: translate(-50%, -50%) scale(1.0);
+  width: 100vw;
+  height: 100vh;
   background-size: cover;
   background-position: center;
   opacity: 0;
   z-index: 1;
   pointer-events: none;
-  border-radius: 4px;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.85);
+  border-radius: 0;
+  box-shadow: none;
   transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Dark overlay on top of the background so text stays readable */
+.mp-background-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
 }
 
 /* Corner overlay */

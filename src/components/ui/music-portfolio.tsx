@@ -222,11 +222,11 @@ const MusicPortfolio = ({
     const bg = backgroundRef.current
     if (imageUrl && bg) {
       bg.style.transition = 'none'
-      bg.style.transform  = 'translate(-50%, -50%) scale(1.12)'
+      bg.style.transform  = 'translate(-50%, -50%) scale(1.06)'
       bg.style.backgroundImage = `url(${imageUrl})`
       bg.style.opacity = '1'
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        bg.style.transition = 'opacity 0.6s ease, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        bg.style.transition = 'opacity 0.6s ease, transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         bg.style.transform  = 'translate(-50%, -50%) scale(1.0)'
       }))
     }
