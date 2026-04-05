@@ -12,35 +12,37 @@ import { useRouter } from "next/navigation"
 
 interface PlannedPost {
   id?: string
-  // type field — AI returns "post"|"carousel"|"story"|"reel"
   type?: string; postType?: string
-  // title/headline — AI returns suggestedHeadline, legacy uses title/keyMessage
   suggestedHeadline?: string; title?: string; keyMessage?: string
   theme?: string
-  // caption — AI returns captionHook, legacy uses caption
   captionHook?: string; caption?: string
-  // timing — AI returns time (HH:MM), legacy uses timing
+  fullCaption?: string
   time?: string; timing?: string
-  // CTA — AI returns cta, legacy uses callToAction
   cta?: string; callToAction?: string
-  // other
   category?: string
   platform?: string | string[]
   hashtags?: string[]
   estimatedReach?: string
   notes?: string
+  growthImpact?: string
   festivalTie?: string; festivalName?: string
   status?: string
 }
 interface DayPlan {
   date: string
   dayName?: string
+  dayTheme?: string
   isFestival?: boolean
   festivalName?: string | null
   posts?: PlannedPost[]
-  items?: PlannedPost[]  // legacy field name
+  items?: PlannedPost[]
   specialNote?: string
   festivals?: string[]
+}
+interface WeeklyGoalTracker {
+  objective?: string
+  targetByEndOfWeek?: string
+  dailyAction?: string
 }
 
 function getMonday(d: Date): Date {
@@ -70,6 +72,10 @@ export default function PlannerPage() {
   const router = useRouter()
   const [selectedPost, setSelectedPost] = useState<PlannedPost | null>(null)
   const [days, setDays]                 = useState<DayPlan[]>([])
+  const [weekSummary, setWeekSummary]   = useState<string>("")
+  const [growthObjective, setGrowthObjective] = useState<string>("")
+  const [weeklyTips, setWeeklyTips]     = useState<string[]>([])
+  const [goalTracker, setGoalTracker]   = useState<WeeklyGoalTracker | null>(null)
   const [loading, setLoading]           = useState(true)
   const [generating, setGenerating]     = useState(false)
   const [error, setError]               = useState<string | null>(null)
@@ -118,8 +124,12 @@ export default function PlannerPage() {
         throw new Error("Server returned an unexpected response. Please try again.")
       }
       if (!res.ok || !data.success) throw new Error((data.error as string) || "Failed to generate plan.")
-      const plan = data.plan as { days?: DayPlan[] } | undefined
+      const plan = data.plan as { days?: DayPlan[]; weekSummary?: string; growthObjective?: string; weeklyTips?: string[]; weeklyGoalTracker?: WeeklyGoalTracker } | undefined
       setDays(plan?.days ?? [])
+      setWeekSummary(plan?.weekSummary ?? "")
+      setGrowthObjective(plan?.growthObjective ?? "")
+      setWeeklyTips(plan?.weeklyTips ?? [])
+      setGoalTracker(plan?.weeklyGoalTracker ?? null)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
     } finally { setGenerating(false); setLoading(false) }
@@ -206,8 +216,37 @@ export default function PlannerPage() {
           </p>
         </div>
       ) : (
-        <div className="flex-1 flex gap-4 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
 
+          {/* Growth Objective Banner */}
+          {(growthObjective || weekSummary) && (
+            <div className="rounded-2xl p-4 flex-shrink-0" style={{ background: "rgba(255,223,0,0.05)", border: "1px solid rgba(255,223,0,0.15)" }}>
+              <div className="flex items-start gap-3">
+                <Sparkles size={14} style={{ color: "#FFE000", flexShrink: 0, marginTop: 2 }} />
+                <div className="flex-1 min-w-0">
+                  {growthObjective && (
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#FFE000", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                      {growthObjective}
+                    </div>
+                  )}
+                  {weekSummary && (
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>{weekSummary}</p>
+                  )}
+                </div>
+                {goalTracker && (
+                  <div className="flex-shrink-0 rounded-xl p-3 text-right" style={{ background: "rgba(255,223,0,0.08)", border: "1px solid rgba(255,223,0,0.2)", minWidth: 160 }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>This week&apos;s target</div>
+                    <div style={{ fontSize: 12, color: "#FFE000", fontWeight: 700, lineHeight: 1.3 }}>{goalTracker.targetByEndOfWeek}</div>
+                    {goalTracker.dailyAction && (
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 4, lineHeight: 1.4 }}>{goalTracker.dailyAction}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Calendar Strip */}
           <div className="flex-1 grid grid-cols-7 gap-2 overflow-x-auto pb-4">
             {days.map((day) => {
@@ -228,6 +267,9 @@ export default function PlannerPage() {
                       <div className="truncate max-w-full mx-auto rounded-full px-2 py-0.5 inline-block" style={{ fontSize: 8, fontWeight: 700, background: "rgba(251,146,60,0.12)", color: "#FB923C" }}>
                         {day.festivalName ?? day.festivals?.[0]}
                       </div>
+                    )}
+                    {day.dayTheme && (
+                      <div className="mt-1 line-clamp-2" style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", lineHeight: 1.3 }}>{day.dayTheme}</div>
                     )}
                   </div>
                   <div className="flex-1 space-y-1.5">
@@ -304,6 +346,12 @@ export default function PlannerPage() {
               </div>
 
               <div className="flex-1 space-y-4">
+                {selectedPost.growthImpact && (
+                  <div className="p-3 rounded-xl" style={{ background: "rgba(255,223,0,0.05)", border: "1px solid rgba(255,223,0,0.15)" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#FFE000", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Growth Impact</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>{selectedPost.growthImpact}</div>
+                  </div>
+                )}
                 {getCaption(selectedPost) && (
                   <div>
                     <div className="flex items-center gap-1 mb-1" style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }}>
@@ -312,6 +360,15 @@ export default function PlannerPage() {
                     <div className="p-3 rounded-xl text-xs leading-relaxed whitespace-pre-line"
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
                       {getCaption(selectedPost)}
+                    </div>
+                  </div>
+                )}
+                {selectedPost.fullCaption && (
+                  <div>
+                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Full Caption</div>
+                    <div className="p-3 rounded-xl text-xs leading-relaxed whitespace-pre-line"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}>
+                      {selectedPost.fullCaption}
                     </div>
                     <div className="flex justify-end mt-1">
                       <button style={{ color: "#A78BFA", fontSize: 10, display: "flex", alignItems: "center", gap: 4 }}>
@@ -374,6 +431,24 @@ export default function PlannerPage() {
                 <GlassButton className="flex-1 text-xs" style={{ color: "#FFE000", border: "1px solid rgba(255,223,0,0.25)" }}>
                   Approve
                 </GlassButton>
+              </div>
+            </div>
+          )}
+          </div>
+
+          {/* Weekly Tips */}
+          {weeklyTips.length > 0 && (
+            <div className="flex-shrink-0 rounded-2xl p-4" style={{ background: "rgba(102,179,255,0.04)", border: "1px solid rgba(102,179,255,0.12)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#66B3FF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                Growth Tactics This Week
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {weeklyTips.map((tip, ti) => (
+                  <div key={ti} className="flex items-start gap-2 flex-1 min-w-[200px]">
+                    <span style={{ color: "#FFE000", fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{ti + 1}.</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>{tip}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
