@@ -41,17 +41,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <AnimatedGradient
           config={{
             preset: "custom",
-            color1: "#020818",
-            color2: "#0A3566",
+            color1: "#020C1F",
+            color2: "#0D4A8F",
             color3: "#66B3FF",
             rotation: -30,
-            proportion: 40,
-            scale: 0.6,
+            proportion: 45,
+            scale: 0.7,
             speed: 18,
             distortion: 3,
             swirl: 55,
             swirlIterations: 8,
-            softness: 85,
+            softness: 75,
             offset: -200,
             shape: "Checks",
             shapeSize: 35,
@@ -59,8 +59,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           noise={{ opacity: 12 }}
           style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 1 }}
         />
-        {/* Dark overlay for readability */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(2,8,24,0.52)", zIndex: 1 }} />
+        {/* Dark overlay for readability — keep low so gradient stays visible */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(2,8,24,0.30)", zIndex: 1 }} />
       </div>
 
       {/* ── Desktop fluid sidebar ──────────────────────────────────────── */}
