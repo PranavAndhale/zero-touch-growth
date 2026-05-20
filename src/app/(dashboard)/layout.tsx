@@ -33,25 +33,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [])
 
   return (
-    <div className="min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
+    <div className="dashboard-root min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
       <GlassFilter />
 
       {/* ── Full-viewport blue WebGL background ───────────────────────── */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "#010b1a" }}>
         <AnimatedGradient
           config={{
             preset: "custom",
-            color1: "#020C1F",
-            color2: "#0D4A8F",
+            color1: "#010b1a",
+            color2: "#1254C0",
             color3: "#66B3FF",
             rotation: -30,
-            proportion: 45,
-            scale: 0.7,
+            proportion: 42,
+            scale: 0.6,
             speed: 18,
             distortion: 3,
             swirl: 55,
             swirlIterations: 8,
-            softness: 75,
+            softness: 82,
             offset: -200,
             shape: "Checks",
             shapeSize: 35,
@@ -59,8 +59,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           noise={{ opacity: 12 }}
           style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 1 }}
         />
-        {/* Dark overlay for readability — keep low so gradient stays visible */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(2,8,24,0.30)", zIndex: 1 }} />
+        {/* Subtle dark overlay — just enough for text readability, not enough to kill the gradient */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(1,11,26,0.25)", zIndex: 1 }} />
       </div>
 
       {/* ── Desktop fluid sidebar ──────────────────────────────────────── */}
