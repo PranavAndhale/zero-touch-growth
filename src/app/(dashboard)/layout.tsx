@@ -8,7 +8,7 @@ import {
   Sparkles, Bell, Menu as MenuIcon, X,
 } from "lucide-react"
 import { GlassFilter } from "@/components/ui/liquid-glass"
-import CssGradientBg from "@/components/ui/css-gradient-bg"
+import AnimatedGradient from "@/components/ui/animated-gradient"
 import { TextStaggerHover } from "@/components/ui/text-stagger-hover"
 import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu"
 
@@ -37,9 +37,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
       <GlassFilter />
 
-      {/* ── Full-viewport CSS animated gradient background ────────────── */}
+      {/* ── Full-viewport animated gradient background ────────────────── */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden" }}>
-        <CssGradientBg />
+        <AnimatedGradient config={{ preset: "Prism" }} style={{ position: "absolute", inset: 0, zIndex: 0 }} />
       </div>
 
       {/* ── Desktop fluid sidebar ──────────────────────────────────────── */}
