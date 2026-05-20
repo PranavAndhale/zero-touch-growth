@@ -8,7 +8,7 @@ import {
   Sparkles, Bell, Menu as MenuIcon, X,
 } from "lucide-react"
 import { GlassFilter } from "@/components/ui/liquid-glass"
-import AnimatedGradient from "@/components/ui/animated-gradient"
+import CssGradientBg from "@/components/ui/css-gradient-bg"
 import { TextStaggerHover } from "@/components/ui/text-stagger-hover"
 import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu"
 
@@ -37,32 +37,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
       <GlassFilter />
 
-      {/* ── Full-viewport blue WebGL background ───────────────────────── */}
-      {/* bg="#020818" is the solid fallback if WebGL fails to init */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "#020818" }}>
-        <AnimatedGradient
-          config={{
-            preset: "custom",
-            color1: "#020818",
-            color2: "#1A64E8",
-            color3: "#66B3FF",
-            rotation: -30,
-            proportion: 40,
-            scale: 0.6,
-            speed: 18,
-            distortion: 3,
-            swirl: 55,
-            swirlIterations: 8,
-            softness: 85,
-            offset: -200,
-            shape: "Checks",
-            shapeSize: 35,
-          }}
-          noise={{ opacity: 12 }}
-          style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 1 }}
-        />
-        {/* Dark overlay for readability */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(2,8,24,0.38)", zIndex: 1 }} />
+      {/* ── Full-viewport CSS animated gradient background ────────────── */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden" }}>
+        <CssGradientBg />
       </div>
 
       {/* ── Desktop fluid sidebar ──────────────────────────────────────── */}
