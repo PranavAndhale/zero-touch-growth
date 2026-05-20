@@ -29,8 +29,9 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={`${interSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      style={{ background: "#020818" }}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground bg-[var(--background)]">
+      <body className="min-h-full flex flex-col text-foreground" style={{ background: "transparent" }}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

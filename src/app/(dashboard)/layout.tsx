@@ -32,18 +32,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (stored) { setBusinessName(stored); setInitial(stored.charAt(0).toUpperCase()) }
   }, [])
 
-  // The root layout sets bg-background on <body> which paints an opaque solid
-  // color over the fixed WebGL gradient. Override it to transparent so the
-  // gradient is the only background source in the dashboard.
-  useEffect(() => {
-    const prev = document.body.style.background
-    document.body.style.background = "transparent"
-    document.documentElement.style.background = "transparent"
-    return () => {
-      document.body.style.background = prev
-      document.documentElement.style.background = ""
-    }
-  }, [])
 
   return (
     <div className="min-h-screen flex" style={{ color: "#fff", position: "relative" }}>
