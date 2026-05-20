@@ -64,15 +64,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dashboard pages rely on the WebGL gradient for their background.
-   These classes let the gradient show through instead of the body solid color. */
-.dashboard-root {
-  background: transparent !important;
-}
-html:has(.dashboard-root),
-body:has(.dashboard-root) {
-  background: #010b1a !important;
-}
 
 /* Base resets & utilities */
 * {
